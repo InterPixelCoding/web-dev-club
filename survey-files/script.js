@@ -29,11 +29,15 @@ function fetch_data(api_key, spreadsheet_id, [column, row]) {
 
 function update_data(api_key, spreadsheet_id, [column, row], new_value) {
     return new Promise((resolve, reject) => {
+        // Construct the endpoint URL
         const endpoint = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheet_id}/values/${column}${row}?valueInputOption=USER_ENTERED&key=${api_key}`;
+
+        // Prepare the data to be updated
         const data = {
             values: [[new_value]]
         };
 
+        // Make a PUT request to update the cell
         fetch(endpoint, {
             method: 'PUT',
             headers: {
@@ -42,22 +46,27 @@ function update_data(api_key, spreadsheet_id, [column, row], new_value) {
             body: JSON.stringify(data)
         })
         .then(response => {
+            // Check if the request was successful
             if (response.ok) {
+                // Resolve the promise if successful
                 resolve();
             } else {
+                // Reject the promise with the error if not successful
                 response.json().then(error => {
                     reject(error);
                 });
             }
         })
         .catch(error => {
+            // Handle any other errors
             console.error("Error updating data:", error);
             reject(error);
         });
     });
 }
 
-const API_KEY = "AIzaSyD4U5TnyKgo_0UNrUfbMZao4C4Q0HHJsXw";
+
+const API_KEY = "AIzaSyAM07AIfBXXRU0Y8MbpzySSVtCAG3xjHr0";
 const SPREADSHEET_ID = "1CLDEyGRnDnwPatNtwe7qLEyjXluG8lvpXENgetWOUB0";
 
 const letter_range = ['B', 'C', 'D', 'E', 'F']
