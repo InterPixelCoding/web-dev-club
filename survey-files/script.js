@@ -12,64 +12,6 @@ const letter_range = ['B', 'C', 'D', 'E', 'F']
 const day_range = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 const time_range = ['lunchtime', 'afterschool']
 
-function main() {
-    for(let n = 0; n<2; n++) {
-        for(let i = 0; i<5; i++) {
-            fetch_data(API_KEY, SPREADSHEET_ID, [letter_range[i], n+2])
-            .then(data => {
-                if(n === 0) {
-                    let change_val = data_arr[0].lunchtime;
-                    change_val[i] = data;
-                } else if (n === 1) {
-                    let change_val = data_arr[1].afterschool;
-                    change_val[i] = data;
-                }
-                if(n === 1 && i === 4) {
-                    // Here you have the fully updated array
-                    submit.addEventListener("click", () => {
-                        cells.forEach(cell => {
-                            if(cell.querySelector('.checkmark').classList.contains('hidden') == false) {
-                                const class_name = String(cell.className).split('-');
-                                for(let x = 0; x<2; x++) {
-                                    let object = data_arr[x]
-                                    let editable_arr = [];
-                                    if(x === 0) {
-                                        editable_arr = object.lunchtime
-                                    } else if(x === 1) {
-                                        editable_arr = object.afterschool
-                                    }
-                                    day_range.forEach(function(day, index) {
-                                        if(day === class_name[0] && class_name[1] === time_range[x]) {
-                                            editable_arr[index] += 1;
-                                        }
-                                    })
-                                    if(x === 1) {
-                                        for(let k = 0; k<2; k++) {
-                                            let container = data_arr[k];
-                                            let object = null;
-                                            if(k === 0) {
-                                                object = container.lunchtime
-                                            } else if (k === 1) {
-                                                object = container.afterschool
-                                            }
-                                            object.forEach( function(value, index) {
-                                                letter = letter_range[index];
-                                                update_data(API_KEY, SPREADSHEET_ID, [letter, k+2], value)
-                                            })
-                                        }
-                                    }
-                                }
-                            }
-                        })
-                    })
-                }
-            })
-        }
-    }
-}
-
-
-
 function update_data(data_arr) {
     let lunchtime_values = [];
     let afterschool_values = [];
@@ -108,35 +50,92 @@ function update_data(data_arr) {
     return data_arr;
 }
 
+// Function to set a cookie
+function set_cookie(name, value, days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+// Function to get a cookie
+function get_cookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+function create_pop_up(main_text_content) {
+    const pop_up_container = document.createElement("div");
+    pop_up_container.classList.add('pop-up-container');
+    pop_up_container.classList.add('inactive');
+    const main_text = document.createElement("span");
+    main_text.textContent = main_text_content;
+    main_text.classList.add("main-text");
+    const understood = document.createElement("button");
+    understood.textContent = 'I understand';
+
+    understood.addEventListener("click", () => {
+        pop_up_container.classList.add('inactive');
+    })
+
+    pop_up_container.appendChild(main_text);
+    pop_up_container.appendChild(understood);
+    return pop_up_container;
+}
+
+const pop_up = create_pop_up('Sorry, you can only submit this response once');
+
+document.body.appendChild(pop_up);
+
 submit.addEventListener("click", () => {
-fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr')
-    .then((response) => response.json())
-    .then((data) => {
-        const new_data = update_data(data);
+    // Check if the submission flag exists
+    if (localStorage.getItem('submission_flag') || get_cookie('submission_flag')) {
+        pop_up.classList.remove('inactive');
+    } else {
+        localStorage.setItem('submission_flag', 'true');
+        set_cookie('submission_flag', 'true', 365);
 
-        fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr/all', {
-            method: 'DELETE',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            }
-        })
-        
-        fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr', {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                data: new_data
-            })
-        })
+        // Continue to submit request
+        fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr')
         .then((response) => response.json())
-        .then((data) => console.log(data));
+        .then((data) => {
+            const new_data = update_data(data);
 
-    });
+            fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr/all', {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            
+            fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr', {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    data: new_data
+                })
+            })
+            .then((response) => response.json())
+            .then((data) => console.log(data));
+
+        });
+    }
 });
+
+
 
 
 
