@@ -114,7 +114,7 @@ fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr')
     .then((data) => {
         const new_data = update_data(data);
 
-        fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr', {
+        fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr/all', {
             method: 'DELETE',
             headers: {
                 'Accept': 'application/json',

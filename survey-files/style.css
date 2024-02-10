@@ -57,7 +57,11 @@ table button {
     top: 25%;
     left: 50%;
     transform: translateX(-50%);
-    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5vw;
+    height: 2.5vw;
     border-radius: .25rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.05);
@@ -82,7 +86,7 @@ td:has(.hidden) {
 }
 
 .checkmark {
-    width: 1rem;
+    width: 50%;
     aspect-ratio: 1;
     transform: scale(1);
     transition: all 100ms ease;
