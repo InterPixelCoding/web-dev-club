@@ -47,6 +47,7 @@ function update_data(data_arr) {
                 }
             }
     });}
+    console.log(data_arr);
     return data_arr;
 }
 
@@ -92,6 +93,11 @@ function create_pop_up(main_text_content) {
     return pop_up_container;
 }
 
+function change_pop_up_text(text) {
+    const pop_up_text = document.querySelector('.pop-up-container > span');
+    pop_up_text.textContent = text;
+}
+
 const pop_up = create_pop_up('Sorry, you can only submit this response once');
 
 document.body.appendChild(pop_up);
@@ -102,12 +108,13 @@ submit.addEventListener("click", () => {
         pop_up.classList.remove('inactive');
     } else {
         localStorage.setItem('submission_flag', 'true');
-        set_cookie('submission_flag', 'true', 365);
+        set_cookie('submission_flag', 'true', 1);
 
         // Continue to submit request
         fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr')
         .then((response) => response.json())
         .then((data) => {
+            console.log(data)
             const new_data = update_data(data);
 
             fetch('https://sheetdb.io/api/v1/uw8piiyloc6lr/all', {
@@ -129,7 +136,12 @@ submit.addEventListener("click", () => {
                 })
             })
             .then((response) => response.json())
-            .then((data) => console.log(data));
+            .then((data) => {
+                change_pop_up_text('Thanks for submitting which days you can do!');
+                pop_up.classList.remove('inactive')
+                console.log(data)
+                }
+            );
 
         });
     }
